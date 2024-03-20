@@ -48,6 +48,6 @@ urlpatterns = [
 
     #InterService call for vehicle details by date
     path('api/vehicle-service/details-by-date/', views.get_vehicle_details_by_date, name='vehicle_details_by_date'),
-    path('api/vehicle-service/details-by-id/', views.get_vehicle_details_by_id, name='vehicle_details_by_id')
+    path('api/vehicle-service/details-by-id', views.get_vehicle_details_by_id, name='vehicle_details_by_id')
 
 ]

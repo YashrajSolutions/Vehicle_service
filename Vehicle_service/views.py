@@ -5,6 +5,7 @@ from .models import vehicle_details,fuel_types,vehicle_types,emission_nom
 from .serializer import vehicle_details_serializer,fuel_type_serializer,vehicle_types_serializer,emission_nom_serializer,vehicle_details_serializer_2
 import time 
 from functools import wraps
+from rest_framework.decorators import api_view
 
 def measure_execution_time(func):
     @wraps(func)
@@ -392,27 +393,31 @@ def get_vehicle_details_by_date(request):
         return JsonResponse({"message": "Something went wrong", "error": str(error)}, status=500)
 
 
+# Inter-Service Call for vehicle by user_id
+
+def parse_user_id(user_id):
+    try:
+        parsed_user_id = int(user_id)
+        return parsed_user_id   
+    except ValueError:
+        return None
+
+
+
+
+@api_view(['GET'])
 @csrf_exempt
 def get_vehicle_details_by_id(request):
     try:
-        if request.method == "GET":
-            user_str = request.GET.get('user_id')  
-            if user_str:
-                print(user_str)
-                user_obj = pars(user_str)
-                print(user_obj)
-                if user_obj:
-                    vehicle_objects = vehicle_details.objects.filter(user_id=user_obj, is_deleted=False)
-                    serializer = vehicle_details_serializer(vehicle_objects, many=True)
-                    if serializer.data:
-                        return JsonResponse({"message": f"Vehicle details for id {user_obj} retrieved successfully!!", "data": serializer.data})
-                    else:
-                        return JsonResponse({"message": f"No vehicle details found for date {user_obj}"})
-                else:
-                    return JsonResponse({"message": "Invalid User format."}, status=400)
+        user_obj = request.GET.get('user_id')  
+        if user_obj:
+            vehicle_objects = vehicle_details.objects.filter(user_id=user_obj, is_deleted=False)
+            serializer = vehicle_details_serializer(vehicle_objects, many=True)
+            if serializer.data:
+                return JsonResponse({"message": f"Vehicle details for id {user_obj} retrieved successfully!!", "data": serializer.data})
             else:
-                return JsonResponse({"message": "Date parameter is missing."}, status=400)
+                return JsonResponse({"message": f"No vehicle details found for date {user_obj}"})
         else:
-            return JsonResponse({"message": "Invalid HTTP Method"}, status=405)
+            return JsonResponse({"message": "Invalid User format."}, status=400)
     except Exception as error:
-        return JsonResponse({"message": "Something went wrong", "error": str(error)}, status=500)
+        return JsonResponse({"message": "Something went wrong", "error": str(error)}, status=500)   
