@@ -28,3 +28,5 @@ class vehicle_details_serializer_2(serializers.ModelSerializer):
     class Meta:
         model = vehicle_details
         fields = '__all__'
+
+
