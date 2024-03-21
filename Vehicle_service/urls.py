@@ -49,6 +49,6 @@ urlpatterns = [
     #InterService call 
     path('api/vehicle-service/details-by-date/', views.get_vehicle_details_by_date, name='vehicle_details_by_date'),
     path('api/vehicle-service/details-by-id', views.get_vehicle_details_by_id, name='vehicle_details_by_id'),
-    path('api/vehicle-service/get_vehicle_details_by_date_range', views.get_vehicle_details_by_date_range,name='get_vehicle_details_by_date_range')
-
+    path('api/vehicle-service/get_vehicle_details_by_date_range', views.get_vehicle_details_by_date_range,name='get_vehicle_details_by_date_range'),
+    path('api/vehicle-service/get_vehicle_details_for_utc',views.get_vehicle_details_utc,name='get_vehicle_details_for_ust'),
 ]

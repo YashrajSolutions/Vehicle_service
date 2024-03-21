@@ -33,7 +33,7 @@ class vehicle_details_serializer_2(serializers.ModelSerializer):
 class vehicle_details_by_date_range_serializer(serializers.ModelSerializer):
     class Meta:
         model = vehicle_details
-        fields = ('vin_no','registration_no','address','user_id','fuel_type','vehicle_type','emission_nom','engine_no')
+        fields = ('vin_no','registration_no','address','user_id','engine_no','created_at')
 
 
 

@@ -6,6 +6,9 @@ from .serializer import vehicle_details_serializer,fuel_type_serializer,vehicle_
 import time 
 from functools import wraps
 from rest_framework.decorators import api_view
+from datetime import datetime
+from django.core.paginator import Paginator
+
 
 def measure_execution_time(func):
     @wraps(func)
@@ -418,8 +421,6 @@ def get_vehicle_details_by_id(request):
     
 
 # Interservice Call for fetching details from Range of Dates given by User
-from datetime import datetime
-from django.core.paginator import Paginator
 
 @api_view(['GET'])
 def get_vehicle_details_by_date_range(request):
@@ -441,5 +442,35 @@ def get_vehicle_details_by_date_range(request):
 
         return JsonResponse({"message":"Vehicles data retrieved successfully ", 'data':page_obj.object_list})
     
+    except Exception as e:
+        return JsonResponse({"message":"Something went wrong", "error":str(e)}, status=500)
+    
+ #Call for fetching details from UTC Dates given by User
+
+from datetime import datetime, timedelta
+@api_view(['GET'])
+@csrf_exempt
+def get_vehicle_details_utc(request):
+    try:
+        start_date_str = request.GET.get('start_date')
+        end_date_str = request.GET.get('end_date')
+ 
+        #parse
+        start_date = datetime.strptime(start_date_str, '%d-%m-%Y').date()
+        end_date = datetime.strptime(end_date_str, '%d-%m-%Y').date()
+ 
+        duration_to_add = timedelta(hours=5, minutes=30)
+ 
+        start_date_IST = start_date + duration_to_add
+        end_date_IST =end_date + duration_to_add
+ 
+ 
+        vehicle_obj = vehicle_details.objects.filter(created_at__date__range=[start_date_IST,end_date_IST])
+ 
+        serializer = vehicle_details_by_date_range_serializer(vehicle_obj,many=True)
+ 
+       
+        return JsonResponse({"message":"Vehicles data retrieved successfully ", 'data':serializer.data})
+   
     except Exception as e:
         return JsonResponse({"message":"Something went wrong", "error":str(e)}, status=500)
