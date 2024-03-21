@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 from .models import vehicle_details,fuel_types,vehicle_types,emission_nom
-from .serializer import vehicle_details_serializer,fuel_type_serializer,vehicle_types_serializer,emission_nom_serializer,vehicle_details_serializer_2
+from .serializer import vehicle_details_serializer,fuel_type_serializer,vehicle_types_serializer,emission_nom_serializer,vehicle_details_serializer_2,vehicle_details_by_date_range_serializer,VehicleDetailsSerializer
 import time 
 from functools import wraps
 from rest_framework.decorators import api_view
@@ -21,6 +21,8 @@ def measure_execution_time(func):
 
 # For Vehicle Details ----------------------------------------------------------------------------------
 
+
+
 @csrf_exempt
 @measure_execution_time
 def create_vehicle(request):
@@ -31,7 +33,7 @@ def create_vehicle(request):
             else:
                 request_data = request
             
-            serializer = vehicle_details_serializer_2(data=request_data)
+            serializer = VehicleDetailsSerializer(data=request_data)
             if serializer.is_valid():
                 serializer.save()
                 return JsonResponse({"message": "Vehicle created successfully!!", "data": serializer.data}, status=201)
@@ -60,6 +62,7 @@ def get_all_vehicle_list(request):
     try:
         vehicle_object = vehicle_details.objects.filter(is_deleted=False)
         serializer = vehicle_details_serializer(vehicle_object, many=True)
+        
         if serializer.data:
             return JsonResponse({"message":"Vehicle details retrieved successfully!!","total":len(serializer.data),"data":serializer.data})
         else:
@@ -67,6 +70,7 @@ def get_all_vehicle_list(request):
     except Exception as error:
         print("get_all_vehicle_list(): ", error)
         return JsonResponse({"message":"Something went wrong"},status=500)
+
 
 @csrf_exempt
 @measure_execution_time
@@ -395,16 +399,6 @@ def get_vehicle_details_by_date(request):
 
 # Inter-Service Call for vehicle by user_id
 
-def parse_user_id(user_id):
-    try:
-        parsed_user_id = int(user_id)
-        return parsed_user_id   
-    except ValueError:
-        return None
-
-
-
-
 @api_view(['GET'])
 @csrf_exempt
 def get_vehicle_details_by_id(request):
@@ -421,3 +415,31 @@ def get_vehicle_details_by_id(request):
             return JsonResponse({"message": "Invalid User format."}, status=400)
     except Exception as error:
         return JsonResponse({"message": "Something went wrong", "error": str(error)}, status=500)   
+    
+
+# Interservice Call for fetching details from Range of Dates given by User
+from datetime import datetime
+from django.core.paginator import Paginator
+
+@api_view(['GET'])
+def get_vehicle_details_by_date_range(request):
+    try:
+        start_date_str = request.GET.get('start_date')
+        end_date_str = request.GET.get('end_date')
+
+        #parse
+        start_date = datetime.strptime(start_date_str, '%d-%m-%Y').date()
+        end_date = datetime.strptime(end_date_str, '%d-%m-%Y').date()
+
+        vehicle_obj = vehicle_details.objects.filter(created_at__date__range=[start_date,end_date])
+
+        serializer = vehicle_details_by_date_range_serializer(vehicle_obj,many=True)
+
+        paginator = Paginator(serializer.data, 5) 
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        return JsonResponse({"message":"Vehicles data retrieved successfully ", 'data':page_obj.object_list})
+    
+    except Exception as e:
+        return JsonResponse({"message":"Something went wrong", "error":str(e)}, status=500)

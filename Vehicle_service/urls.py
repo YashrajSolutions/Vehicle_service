@@ -46,8 +46,9 @@ urlpatterns = [
     path('api/emission-nom', views.get_all_emission_nom_list, name='get_all_emission_list'),
     path('api/emission-nom/<int:pk>/delete', views.delete_emission_nom, name='delete_emission_nom'),
 
-    #InterService call for vehicle details by date
+    #InterService call 
     path('api/vehicle-service/details-by-date/', views.get_vehicle_details_by_date, name='vehicle_details_by_date'),
-    path('api/vehicle-service/details-by-id', views.get_vehicle_details_by_id, name='vehicle_details_by_id')
+    path('api/vehicle-service/details-by-id', views.get_vehicle_details_by_id, name='vehicle_details_by_id'),
+    path('api/vehicle-service/get_vehicle_details_by_date_range', views.get_vehicle_details_by_date_range,name='get_vehicle_details_by_date_range')
 
 ]
